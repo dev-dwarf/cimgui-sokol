@@ -9,6 +9,10 @@
 #include "cimgui.h"
 #include "sokol_imgui.h"
 
+#define FONT_AWESOME_ICON_SIZE 13
+#include "fa6.h"
+#include "fa6_data.h"
+
 static struct {
     sg_pass_action pass_action;
 } state;
@@ -19,6 +23,23 @@ static void init(void) {
         .logger.func = slog_func,
     });
     simgui_setup(&(simgui_desc_t){ 0 });
+
+      static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+	ImFontConfig icons_config = {
+        .FontDataOwnedByAtlas = true,
+        .SizePixels = FONT_AWESOME_ICON_SIZE,
+        .OversampleH = 1,
+        .OversampleV = 1,
+        .PixelSnapH = true,
+        .GlyphMinAdvanceX = 1.0f,
+        .GlyphMaxAdvanceX = 3.402823466e+38F,
+        .MergeMode = true,
+        .RasterizerMultiply = 1.0f,
+        .RasterizerDensity = 1.0f
+    };
+
+    ImGuiIO* io = igGetIO();
+    ImFontAtlas_AddFontFromMemoryCompressedTTF(io->Fonts, (void*)fa_solid_900_compressed_data, fa_solid_900_compressed_size, FONT_AWESOME_ICON_SIZE, &icons_config, icons_ranges); // FA 6
 
     // initial clear color
     state.pass_action = (sg_pass_action) {
@@ -38,7 +59,7 @@ static void frame(void) {
     igSetNextWindowPos((ImVec2){10,10}, ImGuiCond_Once, (ImVec2){0,0});
     igSetNextWindowSize((ImVec2){400, 100}, ImGuiCond_Once);
     igBegin("Hello Dear ImGui!", 0, ImGuiWindowFlags_None);
-    igColorEdit3("Background", &state.pass_action.colors[0].clear_value.r, ImGuiColorEditFlags_None);
+    igColorEdit3(ICON_FA_BOOK " Background", &state.pass_action.colors[0].clear_value.r, ImGuiColorEditFlags_None);
     igEnd();
     /*=== UI CODE ENDS HERE ===*/
 
@@ -60,6 +81,7 @@ static void event(const sapp_event* ev) {
 sapp_desc sokol_main(int argc, char* argv[]) {
     (void)argc;
     (void)argv;
+    
     return (sapp_desc){
         .init_cb = init,
         .frame_cb = frame,
