@@ -9,9 +9,10 @@
 #include "cimgui.h"
 #include "sokol_imgui.h"
 
-#define FONT_AWESOME_ICON_SIZE 13
+#define DEBUG_FONT_SIZE 14
 #include "fa6.h"
 #include "fa6_data.h"
+#include "berkeley_mono.h"
 
 static struct {
     sg_pass_action pass_action;
@@ -22,28 +23,142 @@ static void init(void) {
         .environment = sglue_environment(),
         .logger.func = slog_func,
     });
-    simgui_setup(&(simgui_desc_t){ 0 });
+    simgui_setup(&(simgui_desc_t){ 
+        .no_default_font = 1,
+    });
 
-      static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
-	ImFontConfig icons_config = {
+	ImFontConfig font_config = {
         .FontDataOwnedByAtlas = true,
-        .SizePixels = FONT_AWESOME_ICON_SIZE,
-        .OversampleH = 1,
-        .OversampleV = 1,
-        .PixelSnapH = true,
+        .SizePixels = DEBUG_FONT_SIZE,
+        .RasterizerMultiply = 1.5f,
+        .RasterizerDensity = 1.0,
         .GlyphMinAdvanceX = 1.0f,
-        .GlyphMaxAdvanceX = 3.402823466e+38F,
-        .MergeMode = true,
-        .RasterizerMultiply = 1.0f,
-        .RasterizerDensity = 1.0f
+        .GlyphMaxAdvanceX = 100.f,
+        .PixelSnapH = true,
+        .OversampleH = 2,
+        .OversampleV = 2,
     };
 
+    static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+    
     ImGuiIO* io = igGetIO();
-    ImFontAtlas_AddFontFromMemoryCompressedTTF(io->Fonts, (void*)fa_solid_900_compressed_data, fa_solid_900_compressed_size, FONT_AWESOME_ICON_SIZE, &icons_config, icons_ranges); // FA 6
+    io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io->ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+    io->ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    io->ConfigWindowsMoveFromTitleBarOnly = true;
+
+    ImFontAtlas_AddFontFromMemoryCompressedTTF(io->Fonts, (void*)BerkeleyMono_compressed_data, BerkeleyMono_compressed_size, DEBUG_FONT_SIZE, &font_config, ImFontAtlas_GetGlyphRangesDefault(io->Fonts));
+    
+    font_config.MergeMode = true;
+    font_config.GlyphOffset.y = 2.0;
+    
+    ImFontAtlas_AddFontFromMemoryCompressedTTF(io->Fonts, (void*)fa_solid_900_compressed_data, fa_solid_900_compressed_size, DEBUG_FONT_SIZE, &font_config, icons_ranges);
+
+    {
+        ImVec4 *colors = igGetStyle()->Colors;
+        colors[ImGuiCol_Text]                   = (ImVec4){1.00f, 1.00f, 0.97f, 1.00f};
+        colors[ImGuiCol_TextDisabled]           = (ImVec4){0.50f, 0.50f, 0.44f, 1.00f};
+        
+        colors[ImGuiCol_WindowBg]               = (ImVec4){0.04f, 0.01f, 0.05f, 0.90f};
+        colors[ImGuiCol_ChildBg]                = (ImVec4){0.00f, 0.00f, 0.00f, 0.00f};
+        colors[ImGuiCol_PopupBg]                = (ImVec4){0.04f, 0.01f, 0.05f, 0.90f};
+        
+        colors[ImGuiCol_Border]                 = (ImVec4){1.00f ,0.81f, 0.00f, 0.24f};
+        colors[ImGuiCol_BorderShadow]           = (ImVec4){0.04f, 0.01f, 0.05f, 0.33f};
+        
+        colors[ImGuiCol_FrameBg]                = (ImVec4){0.09f, 0.14f, 0.41f, 0.54f};
+        colors[ImGuiCol_FrameBgHovered]         = (ImVec4){0.09f, 0.14f, 0.41f, 0.90f};
+        colors[ImGuiCol_FrameBgActive]          = (ImVec4){0.09f, 0.14f, 0.41f, 1.00f};
+        
+        colors[ImGuiCol_TitleBg]                = (ImVec4){0.09f, 0.14f, 0.41f, 0.90f};
+        colors[ImGuiCol_TitleBgActive]          = (ImVec4){0.09f, 0.14f, 0.41f, 1.00f};
+        colors[ImGuiCol_TitleBgCollapsed]       = (ImVec4){0.09f, 0.14f, 0.41f, 0.90f};
+        
+        colors[ImGuiCol_MenuBarBg]              = (ImVec4){0.09f, 0.14f, 0.41f, 0.50f};
+        colors[ImGuiCol_ScrollbarBg]            = (ImVec4){0.00f, 0.00f, 0.00f, 0.00f};
+        colors[ImGuiCol_ScrollbarGrab]          = (ImVec4){0.09f, 0.14f, 0.41f, 1.00f};
+        colors[ImGuiCol_ScrollbarGrabHovered]   = (ImVec4){0.17f, 0.91f, 0.96f, 1.00f};
+        colors[ImGuiCol_ScrollbarGrabActive]    = (ImVec4){0.17f, 0.91f, 0.96f, 1.00f};
+        
+        colors[ImGuiCol_CheckMark]              = (ImVec4){1.00f ,0.81f, 0.00f, 1.00f};
+        
+        colors[ImGuiCol_SliderGrab]             = (ImVec4){1.00f ,0.81f, 0.00f, 1.00f};
+        colors[ImGuiCol_SliderGrabActive]       = (ImVec4){0.17f, 0.91f, 0.96f, 1.00f};
+        
+        colors[ImGuiCol_Button]                 = (ImVec4){0.09f, 0.14f, 0.41f, 0.54f};
+        colors[ImGuiCol_ButtonHovered]          = (ImVec4){0.04f, 0.01f, 0.05f, 0.25f};
+        colors[ImGuiCol_ButtonActive]           = (ImVec4){0.04f, 0.01f, 0.05f, 1.00f};
+        
+        colors[ImGuiCol_Header]                 = (ImVec4){0.09f, 0.14f, 0.41f, 1.00f};
+        colors[ImGuiCol_HeaderHovered]          = (ImVec4){0.04f, 0.01f, 0.05f, 0.80f};
+        colors[ImGuiCol_HeaderActive]           = (ImVec4){0.04f, 0.01f, 0.05f, 0.80f};
+
+        colors[ImGuiCol_Separator]              = (ImVec4){0.09f, 0.14f, 0.41f, 1.00f};
+        colors[ImGuiCol_SeparatorHovered]       = (ImVec4){0.09f, 0.14f, 0.41f, 1.00f};
+        colors[ImGuiCol_SeparatorActive]        = (ImVec4){0.09f, 0.14f, 0.41f, 1.00f};
+        
+        colors[ImGuiCol_ResizeGrip]             = (ImVec4){0.28f, 0.28f, 0.28f, 0.29f};
+        colors[ImGuiCol_ResizeGripHovered]      = (ImVec4){0.44f, 0.44f, 0.44f, 0.29f};
+        colors[ImGuiCol_ResizeGripActive]       = (ImVec4){0.40f, 0.44f, 0.47f, 1.00f};
+        
+        colors[ImGuiCol_Tab]                    = (ImVec4){0.09f, 0.14f, 0.41f, 1.00f};
+        colors[ImGuiCol_TabHovered]             = (ImVec4){0.00f, 0.00f, 0.00f, 1.00f};
+        colors[ImGuiCol_TabSelected]            = (ImVec4){0.00f, 0.00f, 0.00f, 1.00f};
+        colors[ImGuiCol_TabSelectedOverline]    = (ImVec4){1.00f ,0.81f, 0.00f, 1.00f};
+        colors[ImGuiCol_TabDimmed]              = (ImVec4){0.00f, 0.00f, 0.00f, 1.00f};
+        colors[ImGuiCol_TabDimmedSelected]      = (ImVec4){0.00f, 0.00f, 0.00f, 1.00f};
+        
+        colors[ImGuiCol_DockingPreview]         = (ImVec4){1.00f ,0.81f, 0.00f, 1.00f};
+        colors[ImGuiCol_DockingEmptyBg]         = (ImVec4){0.04f, 0.01f, 0.05f, 0.10f};
+        
+        colors[ImGuiCol_PlotLines]              = (ImVec4){1.00f, 0.00f, 0.35f, 1.00f};
+        colors[ImGuiCol_PlotLinesHovered]       = (ImVec4){1.00f, 0.00f, 0.35f, 1.00f};
+        colors[ImGuiCol_PlotHistogram]          = (ImVec4){1.00f, 0.00f, 0.35f, 1.00f};
+        colors[ImGuiCol_PlotHistogramHovered]   = (ImVec4){1.00f, 0.00f, 0.35f, 1.00f};
+        
+        colors[ImGuiCol_TableHeaderBg]          = (ImVec4){0.00f, 0.00f, 0.00f, 0.52f};
+        colors[ImGuiCol_TableBorderStrong]      = (ImVec4){0.00f, 0.00f, 0.00f, 0.52f};
+        colors[ImGuiCol_TableBorderLight]       = (ImVec4){0.28f, 0.28f, 0.28f, 0.29f};
+        colors[ImGuiCol_TableRowBg]             = (ImVec4){0.00f, 0.00f, 0.00f, 0.00f};
+        colors[ImGuiCol_TableRowBgAlt]          = (ImVec4){1.00f, 1.00f, 1.00f, 0.06f};
+        
+        colors[ImGuiCol_TextSelectedBg]         = (ImVec4){0.20f, 0.22f, 0.23f, 1.00f};
+        colors[ImGuiCol_DragDropTarget]         = (ImVec4){1.00f ,0.81f, 0.00f, 1.00f};
+        colors[ImGuiCol_NavHighlight]           = (ImVec4){1.00f ,0.81f, 0.00f, 1.00f};
+        colors[ImGuiCol_NavWindowingHighlight]  = (ImVec4){1.00f, 0.00f, 0.00f, 0.70f};
+        colors[ImGuiCol_NavWindowingDimBg]      = (ImVec4){1.00f, 0.00f, 0.00f, 0.20f};
+        colors[ImGuiCol_ModalWindowDimBg]       = (ImVec4){1.00f, 0.00f, 0.00f, 0.35f};
+
+        ImGuiStyle *style = igGetStyle();
+        style->WindowPadding                     = (ImVec2){8.00f, 8.00f};
+        style->FramePadding                      = (ImVec2){5.00f, 2.00f};
+        style->CellPadding                       = (ImVec2){6.00f, 6.00f};
+        style->ItemSpacing                       = (ImVec2){6.00f, 6.00f};
+        style->ItemInnerSpacing                  = (ImVec2){6.00f, 6.00f};
+        style->TouchExtraPadding                 = (ImVec2){0.00f, 0.00f};
+        style->IndentSpacing                     = 25;
+        style->ScrollbarSize                     = 15;
+        style->GrabMinSize                       = 10;
+        style->WindowBorderSize                  = 2;
+        style->ChildBorderSize                   = 0;
+        style->PopupBorderSize                   = 0.5;
+        style->FrameBorderSize                   = 0.5;
+        style->WindowRounding                    = 0;
+        style->ChildRounding                     = 0;
+        style->FrameRounding                     = 0;
+        style->PopupRounding                     = 0;
+        style->ScrollbarRounding                 = 5;
+        style->GrabRounding                      = 0;
+        style->TabRounding                       = 0;
+        style->LogSliderDeadzone                 = 0;
+        style->TabBorderSize                     = 0;
+        style->DockingSeparatorSize              = 0;
+
+    }
 
     // initial clear color
     state.pass_action = (sg_pass_action) {
-        .colors[0] = { .load_action = SG_LOADACTION_CLEAR, .clear_value = { 0.0f, 0.5f, 1.0f, 1.0 } }
+        .colors[0] = { .load_action = SG_LOADACTION_CLEAR, .clear_value = { 1.0f, 1.0f, 1.0f, 1.0 } }
     };
 }
 
@@ -58,8 +173,11 @@ static void frame(void) {
     /*=== UI CODE STARTS HERE ===*/
     igSetNextWindowPos((ImVec2){10,10}, ImGuiCond_Once, (ImVec2){0,0});
     igSetNextWindowSize((ImVec2){400, 100}, ImGuiCond_Once);
-    igBegin("Hello Dear ImGui!", 0, ImGuiWindowFlags_None);
-    igColorEdit3(ICON_FA_BOOK " Background", &state.pass_action.colors[0].clear_value.r, ImGuiColorEditFlags_None);
+    igBegin(ICON_FA_MUSIC "Hello Dear ImGui!" ICON_FA_AUSTRAL_SIGN, 0, ImGuiWindowFlags_None);
+    igColorEdit3(ICON_FA_AUSTRAL_SIGN " Background", &state.pass_action.colors[0].clear_value.r, ImGuiColorEditFlags_None);
+
+    bool bruh = true;
+    igShowDemoWindow(&bruh);
     igEnd();
     /*=== UI CODE ENDS HERE ===*/
 
@@ -87,10 +205,13 @@ sapp_desc sokol_main(int argc, char* argv[]) {
         .frame_cb = frame,
         .cleanup_cb = cleanup,
         .event_cb = event,
-        .window_title = "Hello Sokol + Dear ImGui",
+        .window_title = "DD",
         .width = 800,
         .height = 600,
-        .icon.sokol_default = true,
         .logger.func = slog_func,
+        
+        .high_dpi = true,
+        .enable_clipboard = true,
+        // .fullscreen = true,
     };
 }
