@@ -2224,6 +2224,7 @@ SOKOL_API_IMPL void simgui_setup(const simgui_desc_t* desc) {
         io->GetClipboardTextFn = _simgui_get_clipboard;
     #endif
     io->ConfigWindowsResizeFromEdges = !_simgui.desc.disable_windows_resize_from_edges;
+    io->navMovesMouse = true;
 
     // create sokol-gfx resources
     sg_push_debug_group("sokol-imgui");
@@ -2534,6 +2535,9 @@ SOKOL_API_IMPL void simgui_new_frame(const simgui_frame_desc_t* desc) {
     io->DisplaySize.x = ((float)desc->width) / _simgui.cur_dpi_scale;
     io->DisplaySize.y = ((float)desc->height) / _simgui.cur_dpi_scale;
     io->DeltaTime = (float)desc->delta_time;
+
+    memset(io->NavInputs, 0, sizeof(io->NavInputs));
+    
     #if !defined(SOKOL_IMGUI_NO_SOKOL_APP)
         if (io->WantTextInput && !sapp_keyboard_shown()) {
             sapp_show_keyboard(true);

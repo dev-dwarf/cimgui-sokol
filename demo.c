@@ -1,6 +1,3 @@
-//------------------------------------------------------------------------------
-//  Simple C99 cimgui+sokol starter project for Win32, Linux and macOS.
-//------------------------------------------------------------------------------
 #include "sokol_app.h"
 #include "sokol_gfx.h"
 #include "sokol_log.h"
@@ -8,6 +5,8 @@
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 #include "cimgui.h"
 #include "sokol_imgui.h"
+#define SOKOL_IMPL
+#include "sokol_gamepad.h"
 
 #define DEBUG_FONT_SIZE 14
 #include "fa6.h"
@@ -23,6 +22,9 @@ static void init(void) {
         .environment = sglue_environment(),
         .logger.func = slog_func,
     });
+
+    sgamepad_init();
+    
     simgui_setup(&(simgui_desc_t){ 
         .no_default_font = 1,
     });
@@ -169,6 +171,40 @@ static void frame(void) {
         .delta_time = sapp_frame_duration(),
         .dpi_scale = sapp_dpi_scale(),
     });
+    sgamepad_record_state();
+
+    sgamepad_gamepad_state pad = {0};
+    sgamepad_get_gamepad_state(0, &pad);
+
+    ImGuiIO* io = igGetIO();
+    io->BackendFlags |= ImGuiBackendFlags_HasGamepad;
+    
+    #define CLAMP(X, A, B) ((X < B)? (B) : ((X > A)? A : X))
+    #define IG_MAP_BUTTON(NAV_NO, BUTTON) {ImGuiIO_AddKeyEvent(io, NAV_NO, (pad.digital_inputs & BUTTON) > 0);}
+    #define IG_MAP_ANALOG(NAV_NO, AXIS, V0, V1) { float v = AXIS; v = (v - V0) / (V1 - V0); if (v > 1.0f) v = 1.0f; ImGuiIO_AddKeyAnalogEvent(io, NAV_NO, v > 0.1f, CLAMP(v, 0.0, 1.0)); }
+    IG_MAP_BUTTON(ImGuiKey_GamepadStart,           SGAMEPAD_GAMEPAD_START);
+    IG_MAP_BUTTON(ImGuiKey_GamepadBack,            SGAMEPAD_GAMEPAD_BACK);
+    IG_MAP_BUTTON(ImGuiKey_GamepadFaceLeft,        SGAMEPAD_GAMEPAD_X);
+    IG_MAP_BUTTON(ImGuiKey_GamepadFaceRight,       SGAMEPAD_GAMEPAD_B);
+    IG_MAP_BUTTON(ImGuiKey_GamepadFaceUp,          SGAMEPAD_GAMEPAD_Y);
+    IG_MAP_BUTTON(ImGuiKey_GamepadFaceDown,        SGAMEPAD_GAMEPAD_A);
+    IG_MAP_BUTTON(ImGuiKey_GamepadDpadLeft,        SGAMEPAD_GAMEPAD_DPAD_LEFT);
+    IG_MAP_BUTTON(ImGuiKey_GamepadDpadRight,       SGAMEPAD_GAMEPAD_DPAD_RIGHT);
+    IG_MAP_BUTTON(ImGuiKey_GamepadDpadUp,          SGAMEPAD_GAMEPAD_DPAD_UP);
+    IG_MAP_BUTTON(ImGuiKey_GamepadDpadDown,        SGAMEPAD_GAMEPAD_DPAD_DOWN);
+    IG_MAP_ANALOG(ImGuiKey_GamepadL1,              pad.left_shoulder, +0.3f, +0.9f);
+    IG_MAP_ANALOG(ImGuiKey_GamepadR1,              pad.right_shoulder, +0.3f, +0.9f);
+    IG_MAP_ANALOG(ImGuiKey_GamepadL2,              pad.left_trigger, +0.3f, +0.9f);
+    IG_MAP_ANALOG(ImGuiKey_GamepadR2,              pad.right_trigger, +0.3f, +0.9f);
+    IG_MAP_BUTTON(ImGuiKey_GamepadL3,              SGAMEPAD_GAMEPAD_LEFT_THUMB);
+    IG_MAP_BUTTON(ImGuiKey_GamepadR3,              SGAMEPAD_GAMEPAD_RIGHT_THUMB);
+    IG_MAP_ANALOG(ImGuiKey_GamepadLStickDown, pad.left_stick.normalized_y, +0.3f, +0.9f);
+    IG_MAP_ANALOG(ImGuiKey_GamepadLStickUp, pad.left_stick.normalized_y, -0.3f, -0.9f);
+    IG_MAP_ANALOG(ImGuiKey_GamepadLStickLeft, pad.left_stick.normalized_x, +0.3f, +0.9f);
+    IG_MAP_ANALOG(ImGuiKey_GamepadLStickRight, pad.left_stick.normalized_x, -0.3f, -0.9f);
+    #undef IG_MAP_BUTTON
+    #undef IG_MAP_ANALOG
+    
 
     /*=== UI CODE STARTS HERE ===*/
     igSetNextWindowPos((ImVec2){10,10}, ImGuiCond_Once, (ImVec2){0,0});
